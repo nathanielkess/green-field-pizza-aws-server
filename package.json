@@ -1,0 +1,27 @@
+{
+  "name": "green-field-pizza-aws-server",
+  "version": "1.0.0",
+  "description": "green-field-pizza-server",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nathanielkess/green-field-pizza-aws-server.git"
+  },
+  "keywords": [
+    "express"
+  ],
+  "author": "Nathaniel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nathanielkess/green-field-pizza-aws-server/issues"
+  },
+  "homepage": "https://github.com/nathanielkess/green-field-pizza-aws-server#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "stripe": "^8.49.0"
+  }
+}

@@ -79,6 +79,6 @@ app.get('/recent-payment-intents', async (req, res) => {
 
 // exports.app = functions.https.onRequest(app);
 
-app.listen(3001, function () {
+app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 });

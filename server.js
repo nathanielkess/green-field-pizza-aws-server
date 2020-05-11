@@ -2,10 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
-
 const privateKey = 'sk_test_8FjVn29BuWNOIgiRlTKmYAml001BwLtPmH';
 const publicKey = 'pk_test_rKarX4mhDwJwrWlfc6yUnoQh00qraD4ezM';
-
 
 const stripe = require('stripe')(privateKey);
 
@@ -22,7 +20,7 @@ app.get('/hello-world', (req, res) => {
 
 app.post('/create-payment-intent', async (req, res) => {
   const data = req.body;
-  
+
 
   await stripe.paymentIntents.create({
     amount: 3500,
@@ -65,7 +63,7 @@ app.get('/recent-payment-intents', async (req, res) => {
   const limit = req.query.limit || 3;
   console.log('limit is', limit);
   stripe.paymentIntents.list(
-    {limit}, 
+    {limit},
     (err, paymentIntents) => {
       if (err) {
         return res.status(500).send({
@@ -78,12 +76,12 @@ app.get('/recent-payment-intents', async (req, res) => {
 })
 
 app.post('/confirm-payment', async (req, res) => {
+  console.log('return ', stripe.confirmCardPayment)
   const data = req.body;
   const billingName = data.name;
   const cardDetails = req.body.cardDetails;
 
-  return stripe
-    .confirmCardPayment(req.body.paymentId, {
+  stripe.confirmCardPayment(req.body.paymentId, {
       payment_method: {
         card: cardDetails,
         billing_details: {

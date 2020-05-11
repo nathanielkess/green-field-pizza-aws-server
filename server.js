@@ -76,23 +76,44 @@ app.get('/recent-payment-intents', async (req, res) => {
 })
 
 app.post('/confirm-payment', async (req, res) => {
-  console.log('return ', stripe.confirmCardPayment)
-  const data = req.body;
-  const billingName = data.name;
-  const cardDetails = req.body.cardDetails;
 
-  stripe.confirmCardPayment(req.body.paymentId, {
-      payment_method: {
-        card: cardDetails,
-        billing_details: {
-          name: billingName,
-        },
-      },
-    })
-    .then(result => {
-      // Handle result.error or result.paymentIntent
-      return console.log('result', result);
-    });
+  const data = req.body;
+
+  console.log('data', data);
+  // const paymentIntent = await stripe.paymentIntents.retrieve('pi_1GhhklGPUWvddotUTXdiE4cU');
+
+  // console.log('payment', { paymentIntent });
+
+  stripe.paymentIntents.confirm('pi_1GhhklGPUWvddotUTXdiE4cU', {
+    payment_method: 'pm_card_visa',
+  },
+    function(err, paymentIntent) {
+      console.log('errored', err);
+    }
+  );
+
+
+
+
+  return res.status(200).send('Confirmed!!');
+
+
+
+  // const billingName = data.name;
+  // const cardDetails = req.body.cardDetails;
+
+  // stripe.confirmCardPayment(req.body.paymentId, {
+  //     payment_method: {
+  //       card: cardDetails,
+  //       billing_details: {
+  //         name: billingName,
+  //       },
+  //     },
+  //   })
+  //   .then(result => {
+  //     // Handle result.error or result.paymentIntent
+  //     return console.log('result', result);
+  //   });
 });
 
 // exports.app = functions.https.onRequest(app);

@@ -23,7 +23,7 @@ app.post('/create-payment-intent', async (req, res) => {
 
 
   await stripe.paymentIntents.create({
-    amount: 3500,
+    amount: data.total,
     payment_method_types: ['card'],
     currency: 'cad',
     metadata: {
@@ -36,7 +36,7 @@ app.post('/create-payment-intent', async (req, res) => {
       return res.send({
         publishableKey: publicKey,
         clientSecret: paymentIntent.client_secret
-      });
+     });
     } catch (err) {
       return res.status(500).send({
         error: err.message

@@ -77,6 +77,26 @@ app.get('/recent-payment-intents', async (req, res) => {
   );
 })
 
+app.post('/confirm-payment', async (req, res) => {
+  const data = req.body;
+  const billingName = data.name;
+  const cardDetails = req.body.cardDetails;
+
+  return stripe
+    .confirmCardPayment(req.body.paymentId, {
+      payment_method: {
+        card: cardDetails,
+        billing_details: {
+          name: billingName,
+        },
+      },
+    })
+    .then(result => {
+      // Handle result.error or result.paymentIntent
+      return console.log('result', result);
+    });
+});
+
 // exports.app = functions.https.onRequest(app);
 
 app.listen(3000, function () {

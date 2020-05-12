@@ -78,17 +78,23 @@ app.get('/recent-payment-intents', async (req, res) => {
 app.post('/confirm-payment', async (req, res) => {
 
   const data = req.body;
+  const cardDetail = req.body.cardDetail
+  const paymentId = req.body.paymentId
 
   console.log('data', data);
   // const paymentIntent = await stripe.paymentIntents.retrieve('pi_1GhhklGPUWvddotUTXdiE4cU');
 
   // console.log('payment', { paymentIntent });
 
-  stripe.paymentIntents.confirm('pi_1GhhklGPUWvddotUTXdiE4cU', {
-    payment_method: 'pm_card_visa',
-  },
-    function(err, paymentIntent) {
-      console.log('errored', err);
+  stripe.paymentIntents.confirm(paymentId, {
+    payment_method: cardDetail,
+  }, (err, paymentIntent) => {
+	if (err) {
+        return res.status(500).send({
+          error: err.message
+        });
+      }
+      return res.send({ paymentIntents })
     }
   );
 

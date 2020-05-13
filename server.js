@@ -24,9 +24,12 @@ app.post('/payment/create', async (req, res) => {
   const isHoldCharge = data.isChargingLater;
   let costumerId;
 
+  // create user attaching payment_method
+  // to be retrieve later on list customerId
   stripe.customers.create(
 	{
 	  description: 'anom',
+	  // payment_method: card
 	},
 	(err, customer) => {
 		if (err) {
@@ -69,7 +72,14 @@ app.post('/payment/confirm', async (req, res) => {
     const cardDetail = req.body.cardDetail
     const paymentId = req.body.paymentId
 
-    console.log('data', data);
+	console.log('data', data);
+
+	const customer = await stripe.paymentMethods.list(
+		{customer: 'cus_HGyuWU7KIAGMM5', type: 'card'},
+		function(err, paymentMethods) {
+		  console.log('err', err, 'payment', paymentMethods);
+		}
+	  );
 
 
 	// first call customer - list

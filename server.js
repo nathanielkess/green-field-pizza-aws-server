@@ -18,31 +18,70 @@ app.get('/hello-world', (req, res) => {
   return res.status(200).send('Hello World!');
 });
 
-app.post('/create-payment-intent', async (req, res) => {
+app.post('/payment/create', async (req, res) => {
+  console.log('its here')
   const data = req.body;
+  const isHoldCharge = data.isChargingLater;
+  let costumerId;
 
+  stripe.customers.create(
+	{
+	  description: 'anom',
+	},
+	(err, customer) => {
+		if (err) {
+			return res.status(500).send({
+				error: err.message
+			});
+		} else {
+		   costumerId = customer.id
+		   console.log('err', err, 'inside of else customer', customer)
+		   console.log('after customer', costumerId)
+			try {
+				stripe.paymentIntents.create({
+					amount: data.total,
+					payment_method_types: ['card'],
+					currency: 'cad',
+					customer: costumerId,
+					off_session:isHoldCharge,
+					confirm: isHoldCharge,
+					metadata: {
+						'name': data.name,
+						'hour': data.hour,
+						'addressDelivery': data.addressDelivery,
+					}
+				}).then((paymentIntent) => {
+					console.log('paymentIntent err', paymentIntent)
+					return res.status(200).send({
+						publishableKey: publicKey,
+						clientSecret: paymentIntent.client_secret
+					});
+				});
+			} catch (err) {
+				console.log(err)
+			}
+		}
+	})
+});
 
-  await stripe.paymentIntents.create({
-    amount: data.total,
-    payment_method_types: ['card'],
-    currency: 'cad',
-    metadata: {
-      'name': data.name,
-      'hour': data.hour,
-      'addressDelivery': data.addressDelivery,
-    }
-  }).then((paymentIntent) => {
-    try {
-      return res.send({
-        publishableKey: publicKey,
-        clientSecret: paymentIntent.client_secret
-     });
-    } catch (err) {
-      return res.status(500).send({
-        error: err.message
-      });
-    }
-  });
+app.post('/payment/confirm', async (req, res) => {
+    const data = req.body;
+    const cardDetail = req.body.cardDetail
+    const paymentId = req.body.paymentId
+
+    console.log('data', data);
+
+    stripe.paymentIntents.confirm(paymentId, {
+      payment_method: cardDetail,
+    }, (err, paymentIntent) => {
+      if (err) {
+          return res.status(500).send({
+            error: err.message
+          });
+       }
+        return res.status(200).send({ paymentIntent });
+      }
+    );
 });
 
 app.get('/recent-accounts', async (_, res) => {
@@ -90,53 +129,6 @@ app.get('/recent-charges', async (req, res) => {
   );
 })
 
-app.post('/confirm-payment', async (req, res) => {
-
-  const data = req.body;
-  const cardDetail = req.body.cardDetail
-  const paymentId = req.body.paymentId
-
-  console.log('data', data);
-  // const paymentIntent = await stripe.paymentIntents.retrieve('pi_1GhhklGPUWvddotUTXdiE4cU');
-
-  // console.log('payment', { paymentIntent });
-
-  stripe.paymentIntents.confirm(paymentId, {
-    payment_method: cardDetail,
-  }, (err, paymentIntent) => {
-	if (err) {
-        return res.status(500).send({
-          error: err.message
-        });
-      }
-      return res.send({ paymentIntents })
-    }
-  );
-
-
-
-
-  return res.status(200).send('Confirmed!!');
-
-
-
-  // const billingName = data.name;
-  // const cardDetails = req.body.cardDetails;
-
-  // stripe.confirmCardPayment(req.body.paymentId, {
-  //     payment_method: {
-  //       card: cardDetails,
-  //       billing_details: {
-  //         name: billingName,
-  //       },
-  //     },
-  //   })
-  //   .then(result => {
-  //     // Handle result.error or result.paymentIntent
-  //     return console.log('result', result);
-  //   });
-});
-
 app.post('/create-charge', async (req, res) => {
 
   const data = req.body;
@@ -159,11 +151,6 @@ app.post('/create-charge', async (req, res) => {
     res.status(500).send({err});
   }
 
-
-
-
-
-  
 });
 
 app.post('/capture-charge', async (req, res) => {

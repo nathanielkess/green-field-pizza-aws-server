@@ -71,6 +71,11 @@ app.post('/payment/confirm', async (req, res) => {
 
     console.log('data', data);
 
+
+	// first call customer - list
+	// get paymentMenthod from the list
+	// confirm passing in the confir
+	// https://stripe.com/docs/api/payment_methods/list
     stripe.paymentIntents.confirm(paymentId, {
       payment_method: cardDetail,
     }, (err, paymentIntent) => {

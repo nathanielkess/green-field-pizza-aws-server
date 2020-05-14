@@ -9,6 +9,8 @@ const stripe = require('stripe')(privateKey);
 
 const app = express();
 
+const DELIVERY_FEE = 500;
+
 
 app.use(bodyParser.json());
 app.use(cors({ origin: true }));
@@ -74,18 +76,53 @@ app.post('/payment/create', async (req, res) => {
 
 
 
+const getAmountForConnectedAccount = (total, deliveryFee) => total - deliveryFee;
+
+app.post('/payment/split', async (req, res) => {
+  const data = req.body;
+  const { paymentId, destinationAccountId } = data;
+  console.log({ destinationAccountId });
+
+  const fee = 0; //<-- stays with greenfield pizza (the rest goes to German)
+  const totalAmount = 1999;
+
+  /**
+   * crate a transfer
+   *   assign german to the group (destination)
+   *   give the group and ID
+   * 
+   * pass the transfer group id to paymentIntents.update (transfer_group: '{ORDER10}');
+   */
 
 
+  stripe.paymentIntents.update(paymentId, {
+    // application_fee_amount: getAmountForConnectedAccount(totalAmount, DELIVERY_FEE),
+    transfer_data: {
+      destination: destinationAccountId, //<-- deliver (of $5.00),  the rest stays with the main account which is ours
+      amount: DELIVERY_FEE
+    }
+  }, (error, result) => {
+    if (error) { res.status(500).send(error) }
+
+    res.status(200).send(result)
+    console.log('result', { result });
+  });
+
+
+
+  // code to add germain as the recipient of the delievery money
+})
 
 
 
 
 app.post('/payment/confirm', async (req, res) => {
-  const data = req.body;
-  // const cardDetail = req.body.cardDetail;
-  const paymentId = req.body.paymentId;
+  const { paymentId } = data;
 
-  console.log('data', data);
+  /**
+   * [ ] update payment intent to point to German Rex
+   */
+
 
   stripe.paymentIntents.confirm(paymentId, {}, (err, paymentIntent) => {
     if (err) {

@@ -18,97 +18,105 @@ app.get('/hello-world', (req, res) => {
   return res.status(200).send('Hello World!');
 });
 
+
 app.post('/payment/create', async (req, res) => {
-  console.log('its here')
   const data = req.body;
+  console.log('HERE!!!', { data });
   const isHoldCharge = data.isChargingLater;
+  // const paymentMethodId = body
   let costumerId;
 
   // create user attaching payment_method
   // to be retrieve later on list customerId
   stripe.customers.create(
-	{
-	  description: 'anom',
-	  // payment_method: card
-	},
-	(err, customer) => {
-		if (err) {
-			return res.status(500).send({
-				error: err.message
-			});
-		} else {
-		   costumerId = customer.id
-		   console.log('err', err, 'inside of else customer', customer)
-		   console.log('after customer', costumerId)
-			try {
-				stripe.paymentIntents.create({
-					amount: data.total,
-					payment_method_types: ['card'],
-					currency: 'cad',
-					customer: costumerId,
-					off_session:isHoldCharge,
-					confirm: isHoldCharge,
-					metadata: {
-						'name': data.name,
-						'hour': data.hour,
-						'addressDelivery': data.addressDelivery,
-					}
-				}).then((paymentIntent) => {
-					console.log('paymentIntent err', paymentIntent)
-					return res.status(200).send({
-						publishableKey: publicKey,
-						clientSecret: paymentIntent.client_secret
-					});
-				});
-			} catch (err) {
-				console.log(err)
-			}
-		}
-	})
+    {
+      description: 'anom',
+      payment_method: data.paymentMethodId
+    },
+    (err, customer) => {
+      if (err) {
+        return res.status(500).send({
+          error: err.message
+        });
+      } else {
+        costumerId = customer.id
+        console.log('err', err, 'inside of else customer', customer)
+        console.log('after customer', costumerId)
+        try {
+          stripe.paymentIntents.create({
+            amount: data.total,
+            payment_method_types: ['card'],
+            currency: 'cad',
+            customer: costumerId,
+            off_session: isHoldCharge,
+            confirm: isHoldCharge,
+            payment_method: data.paymentMethodId,
+            metadata: {
+              'name': data.name,
+              'hour': data.hour,
+              'addressDelivery': data.addressDelivery,
+            }
+          }).then((paymentIntent) => {
+            console.log('paymentIntent err', paymentIntent)
+            return res.status(200).send({
+              publishableKey: publicKey,
+              clientSecret: paymentIntent.client_secret
+            });
+          });
+        } catch (err) {
+          console.log(err)
+        }
+      }
+    })
 });
+
+
+
+
+
+
+
+
+
+
 
 app.post('/payment/confirm', async (req, res) => {
-    const data = req.body;
-    const cardDetail = req.body.cardDetail
-    const paymentId = req.body.paymentId
+  const data = req.body;
+  // const cardDetail = req.body.cardDetail;
+  const paymentId = req.body.paymentId;
 
-	console.log('data', data);
+  console.log('data', data);
 
-	const customer = await stripe.paymentMethods.list(
-		{customer: 'cus_HGyuWU7KIAGMM5', type: 'card'},
-		function(err, paymentMethods) {
-		  console.log('err', err, 'payment', paymentMethods);
-		}
-	  );
+  stripe.paymentIntents.confirm(paymentId, {}, (err, paymentIntent) => {
+    if (err) {
+      return res.status(500).send({
+        error: err.message
+      });
+    }
+    return res.status(200).send({ paymentIntent });
+  });
 
 
-	// first call customer - list
-	// get paymentMenthod from the list
-	// confirm passing in the confir
-	// https://stripe.com/docs/api/payment_methods/list
-    stripe.paymentIntents.confirm(paymentId, {
-      payment_method: cardDetail,
-    }, (err, paymentIntent) => {
-      if (err) {
-          return res.status(500).send({
-            error: err.message
-          });
-       }
-        return res.status(200).send({ paymentIntent });
-      }
-    );
 });
+
+
+
+
+
+
+
+
 
 app.get('/recent-accounts', async (_, res) => {
   stripe.accounts.list(
-    {limit: 10},
+    { limit: 10 },
     (err, accounts) => {
       if (err) {
         return res.status(500).send({
           error: err.message
         });
       }
-      return res.send({accounts});
+      return res.send({ accounts });
     }
   );
 });
@@ -117,14 +125,14 @@ app.get('/recent-payment-intents', async (req, res) => {
   const limit = req.query.limit || 3;
   console.log('limit is', limit);
   stripe.paymentIntents.list(
-    {limit},
+    { limit },
     (err, paymentIntents) => {
       if (err) {
         return res.status(500).send({
           error: err.message
         });
       }
-      return res.send({paymentIntents})
+      return res.send({ paymentIntents })
     }
   );
 })
@@ -132,14 +140,14 @@ app.get('/recent-payment-intents', async (req, res) => {
 app.get('/recent-charges', async (req, res) => {
   const limit = req.query.limit || 3;
   stripe.charges.list(
-    {limit},
-    function(err, charges) {
+    { limit },
+    function (err, charges) {
       if (err) {
         return res.status(500).send({
           error: err.message
         });
       }
-      return res.send({charges});
+      return res.send({ charges });
     }
   );
 })
@@ -149,7 +157,7 @@ app.post('/create-charge', async (req, res) => {
   const data = req.body;
   const token = data.token;
 
-  console.log('token is', {token})
+  console.log('token is', { token })
 
   try {
     const charge = await stripe.charges.create({
@@ -162,8 +170,8 @@ app.post('/create-charge', async (req, res) => {
     res.status(200).send('charge created');
 
   } catch (err) {
-    console.log('create charge error!', {err})
-    res.status(500).send({err});
+    console.log('create charge error!', { err })
+    res.status(500).send({ err });
   }
 
 });

@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const axios = require('axios');
 
 const privateKey = 'sk_test_8FjVn29BuWNOIgiRlTKmYAml001BwLtPmH';
 const publicKey = 'pk_test_rKarX4mhDwJwrWlfc6yUnoQh00qraD4ezM';
@@ -46,6 +47,7 @@ app.post('/payment/create', async (req, res) => {
         console.log('after customer', costumerId)
         try {
           stripe.paymentIntents.create({
+            setup_future_usage: 'off_session',
             amount: data.total,
             payment_method_types: ['card'],
             currency: 'cad',
@@ -57,7 +59,7 @@ app.post('/payment/create', async (req, res) => {
               'name': data.name,
               'hour': data.hour,
               'addressDelivery': data.addressDelivery,
-            }
+            },
           }).then((paymentIntent) => {
             console.log('paymentIntent err', paymentIntent)
             return res.status(200).send({
@@ -86,37 +88,62 @@ app.post('/payment/split', async (req, res) => {
   const fee = 0; //<-- stays with greenfield pizza (the rest goes to German)
   const totalAmount = 1999;
 
-  /**
-   * crate a transfer
-   *   assign german to the group (destination)
-   *   give the group and ID
-   * 
-   * pass the transfer group id to paymentIntents.update (transfer_group: '{ORDER10}');
-   */
-
-
   stripe.paymentIntents.update(paymentId, {
-    // application_fee_amount: getAmountForConnectedAccount(totalAmount, DELIVERY_FEE),
-    transfer_data: {
-      destination: destinationAccountId, //<-- deliver (of $5.00),  the rest stays with the main account which is ours
-      amount: DELIVERY_FEE
-    }
+    transfer_group: 'pizza-item-3'
   }, (error, result) => {
-    if (error) { res.status(500).send(error) }
+    if (error) { return res.status(500).send({ error }) }
+    console.log('result from the update', { result });
+    stripe.transfers.create({
+      amount: 500,
+      currency: 'cad',
+      destination: destinationAccountId,
+      transfer_group: 'pizza-item-3',
+      // source_transaction: paymentId,
+    }).then((result) => {
+      console.log('result is', { result })
+      res.status(200).send('split success!!!!!');
+    }).catch((error) => {
+      return res.status(500).send({ error })
+    })
 
-    res.status(200).send(result)
-    console.log('result', { result });
-  });
+  })
+
+  // const transfer = await stripe.transfers.create({
+  //   amount: 500,
+  //   currency: 'cad',
+  //   destination: destinationAccountId,
+  //   transfer_group: '{ORDER10}',
+  // });
 
 
 
-  // code to add germain as the recipient of the delievery money
+  // stripe.paymentIntents.update(paymentId, {
+  //   transfer_data: {
+  //     amount: 500,
+  //     destination: 'acct_1GgBWUK3XSkdRRoQ',
+  //   }
+  // }, (error, result) => {
+  //   if (error) { res.status(500).send(error) }
+
+  //   res.status(200).send(result)
+  //   console.log('result', { result });
+  // });
+
+
+
+
+
+
+
+
+
 })
 
 
 
 
 app.post('/payment/confirm', async (req, res) => {
+  const data = req.body;
   const { paymentId } = data;
 
   /**
@@ -234,3 +261,7 @@ app.post('/capture-charge', async (req, res) => {
 app.listen(3000, function () {
   console.log('Example app listening on port 3000!');
 });
+
+
+
+

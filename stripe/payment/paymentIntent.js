@@ -54,7 +54,6 @@ exports.routesPaymentIntentConfig = (app) => {
       })
   });
 
-
   app.post('/payment/split', async (req, res) => {
     const data = req.body;
     const { paymentId, destinationAccountId } = data;
@@ -129,62 +128,5 @@ exports.routesPaymentIntentConfig = (app) => {
       }
     );
   })
-
-  app.get('/recent-charges', async (req, res) => {
-    const limit = req.query.limit || 3;
-    stripe.charges.list(
-      { limit },
-      function (err, charges) {
-        if (err) {
-          return res.status(500).send({
-            error: err.message
-          });
-        }
-        return res.send({ charges });
-      }
-    );
-  })
-
-  app.post('/create-charge', async (req, res) => {
-
-    const data = req.body;
-    const token = data.token;
-
-    console.log('token is', { token })
-
-    try {
-      const charge = await stripe.charges.create({
-        amount: 999,
-        currency: 'usd',
-        description: 'Example charge',
-        source: token.id, //<-- just the ID: https://github.com/zandoan/turing-frontend/issues/38
-        capture: false,
-      });
-      res.status(200).send('charge created');
-
-    } catch (err) {
-      console.log('create charge error!', { err })
-      res.status(500).send({ err });
-    }
-
-  });
-
-  app.post('/capture-charge', async (req, res) => {
-    const data = req.body;
-    chargeId = data.chargeId;
-    console.log('charge id', { chargeId });
-    try {
-      const charge = await stripe.charges.capture(chargeId);
-      res.status(200).send({
-        message: 'charge confirmed',
-        charge: charge
-      });
-    } catch (error) {
-      res.status(500).send({
-        message: 'error capturing charge',
-        error: error
-      })
-    }
-  });
 
 };

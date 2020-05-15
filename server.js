@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const server = require('./config/express.config');
 
 server.listen(3000, function () {

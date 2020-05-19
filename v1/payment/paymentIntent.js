@@ -5,8 +5,9 @@ const {
   PI_PIZZAGROUP, 
   PAYMENT_CARD,
   DELIVERY_DRIVER_FEE,
-  DEFAULT_USERNAME
+  DEFAULT_USERNAME,
 } = require('./payment.constants');
+const { getPaymentIntentByStatusConfirm } = require('./payment.utils');
 
 exports.routesPaymentIntentConfig = (app) => {
   app.get('/hello-world', (_, res) => {
@@ -108,32 +109,17 @@ exports.routesPaymentIntentConfig = (app) => {
 
   });
 
-  app.get('/recent-accounts', async (_, res) => {
-    stripe.accounts.list(
-      { limit: 10 },
-      (err, accounts) => {
-        if (err) {
-          return res.status(500).send({
-            error: err.message
-          });
-        }
-        return res.status(200).send({ accounts });
-      }
-    );
-  });
-
-  app.get('/recent-payment-intents', async (req, res) => {
-    const limit = req.query.limit || 3;
-
+  app.get('/payment/recent', async (_, res) => {
     stripe.paymentIntents.list(
-      { limit },
+      {},
       (err, paymentIntents) => {
         if (err) {
           return res.status(500).send({
             error: err.message
           });
         }
-        return res.status(200).send({ paymentIntents })
+        const paymentIntent = getPaymentIntentByStatusConfirm(paymentIntents.data);
+        return res.status(200).send({ paymentIntent })
       }
     );
   })

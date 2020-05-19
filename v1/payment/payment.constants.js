@@ -13,6 +13,10 @@ const PAYMENT_CARD = ['card'];
 
 const DELIVERY_DRIVER_FEE = 500;
 
+const PAYMENT_STATUS = {
+  confirm_required: 'requires_confirmation'
+};
+
 module.exports = {
   PAYMENT_CURRENCY,
   PI_FUTURE_USAGE,
@@ -20,4 +24,5 @@ module.exports = {
   PAYMENT_CARD,
   DEFAULT_USERNAME,
   DELIVERY_DRIVER_FEE,
-}
+  PAYMENT_STATUS
+};

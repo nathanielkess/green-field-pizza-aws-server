@@ -75,7 +75,7 @@ exports.routesPaymentIntentConfig = (app) => {
     }, (error, _) => {
       if (error) {
         console.log('inside if')
-         return res.status(500).send({ message: "params missing" }) 
+         return res.status(500).send({ message: message.error || "params missing" }) 
       }
 
       stripe.transfers.create({

@@ -1,3 +1,5 @@
+const stripe = require('../../common/stripe.instance');
+
 exports.routesAccountConfig = (app) => {
 
   app.get('/accounts/recent', async (req, res) => {
